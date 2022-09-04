@@ -1,5 +1,5 @@
 use rand::seq::SliceRandom;
-use crate::matrix::{dsigmoid, Matrix, multiply};
+use crate::nn::matrix::{dsigmoid, Matrix, multiply};
 
 pub struct NeuralNetwork {
     layer_sizes: Vec<usize>,
@@ -91,7 +91,9 @@ impl NeuralNetwork {
                     }
                 }
             }
-            println!("Epoch: {}, Errors: {}", e, errors_this_epoch);
+            if e % 10 == 0 {
+                println!("Epoch: {}, Errors: {}", e, errors_this_epoch);
+            }
         }
     }
 }

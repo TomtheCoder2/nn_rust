@@ -1,7 +1,7 @@
 use rand::seq::SliceRandom;
 use crate::matrix::{dsigmoid, Matrix, multiply};
 
-struct NeuralNetwork {
+pub struct NeuralNetwork {
     layer_sizes: Vec<usize>,
     weights: Vec<Matrix>,
     biases: Vec<Matrix>,
@@ -54,7 +54,7 @@ impl NeuralNetwork {
         let mut error = Matrix::subtract(&target, &layers[layers.len() - 1]);
         let mut transposed: Matrix;
         self.correct_error(layers.len() - 1, &layers, &error);
-        for i in (0..self.layer_sizes.len() - 1).rev() {
+        for i in (1..self.layer_sizes.len() - 1).rev() {
             transposed = Matrix::transpose(&self.weights[i]);
             error = multiply(&transposed, &error);
             self.correct_error(i, &layers, &error);
@@ -68,17 +68,19 @@ impl NeuralNetwork {
         h_gradient.multiply_with_double(self.learning_rate);
 
         let wih_delta = multiply(&h_gradient, &Matrix::transpose(&layers[i - 1]));
-        self.weights[i].add_matrix(&wih_delta);
-        self.biases[i].add_matrix(&h_gradient);
+        self.weights[i - 1].add_matrix(&wih_delta);
+        self.biases[i - 1].add_matrix(&h_gradient);
     }
 
-    pub fn fit(&mut self, inputs: Vec<Vec<f64>>, targets: Vec<Vec<f64>>, epochs: i32) {
+    pub fn fit(&mut self, inputs: &Vec<Vec<f64>>, targets: &Vec<Vec<f64>>, epochs: i32) {
         for e in 0..epochs {
             let mut samples: Vec<usize> = (0..inputs.len()).collect();
             samples.shuffle(&mut rand::thread_rng());
 
             let mut errors_this_epoch = 0;
             for i in samples {
+                // println!("input: {:?}", inputs[i].clone());
+                // println!("target: {:?}", targets[i].clone());
                 let result = self.train(inputs[i].clone(), targets[i].clone());
                 // check result
                 let bit_result: Vec<i32> = result.iter().map(|x| if *x > 0.5 { 1 } else { 0 }).collect();

@@ -105,7 +105,6 @@ impl Matrix {
     }
     pub fn transpose(m1: &Matrix) -> Matrix {
         let mut m: Matrix = matrix_constructor(m1.cols, m1.rows);
-        m.data = vec![vec![0.0; m1.cols]; m1.rows];
         for row in 0..m1.rows {
             for col in 0..m1.cols {
                 m.data[col][row] = m1.data[row][col];
@@ -113,6 +112,16 @@ impl Matrix {
         }
         m
     }
+    pub fn multiply_1to1(a: &Matrix, b: &Matrix) -> Matrix {
+        let mut m = matrix_constructor(a.rows, a.cols);
+        for rows in 0..a.rows {
+            for cols in 0..a.cols {
+                m.data[rows][cols] = a.data[rows][cols] * b.data[rows][cols];
+            }
+        }
+        m
+    }
+
     pub fn multiply_two(m1: Matrix, m2: Matrix) -> Matrix {
         if m1.cols != m2.rows {
             panic!("Matrix multiply: matrices have different dimensions");
@@ -131,9 +140,9 @@ impl Matrix {
         m
     }
     pub fn multiply_with_matrix(&mut self, m: &Matrix) {
-        if self.cols != m.rows {
-            panic!("Matrix multiply: matrices have different dimensions");
-        }
+        // if self.cols != m.rows {
+        //     panic!("Matrix multiply: matrices have different dimensions (a: {}, b: {})", self.cols, self.rows);
+        // }
         for row in 0..self.rows {
             for col in 0..m.cols {
                 self.data[row][col] *= m.data[row][col];

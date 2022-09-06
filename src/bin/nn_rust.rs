@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 
 fn main() {
     let mut nn = NeuralNetwork::new(vec![4, 74, 89, 7], 0.000056, 1);
-    let ds = DataSet::getFromFile("data.txt");
+    let ds = DataSet::get_from_file("data.txt");
     // print data_set
     let start = Instant::now();
     nn.fit(&ds.inputs, &ds.targets, 100);

@@ -1,9 +1,10 @@
 use std::fs::File;
 use std::io::Read;
 
+#[derive(Debug, Clone)]
 pub struct DataSet {
-   pub inputs: Vec<Vec<f64>>,
-   pub targets: Vec<Vec<f64>>,
+    pub inputs: Vec<Vec<f64>>,
+    pub targets: Vec<Vec<f64>>,
 }
 
 impl DataSet {
@@ -11,7 +12,11 @@ impl DataSet {
         DataSet { inputs, targets }
     }
 
-    pub fn getFromFile(file_name: &str) -> DataSet {
+    pub fn new_empty() -> DataSet {
+        DataSet { inputs: Vec::new(), targets: Vec::new() }
+    }
+
+    pub fn get_from_file(file_name: &str) -> DataSet {
         let mut file = File::open(file_name).expect("File not found");
         let mut contents = String::new();
         file.read_to_string(&mut contents).expect("Something went wrong reading the file");

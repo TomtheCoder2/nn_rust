@@ -1,39 +1,38 @@
+use crate::ec::EvolutionaryComputation::{INPUT_SIZE, OUTPUT_SIZE, TEST_SET, TRAINING_SET};
 use crate::nn::data_set::DataSet;
 use crate::nn::neural_network::NeuralNetwork;
 
-struct Contestant {
-    layer_count: i32,
-    layer_sizes: Vec<i32>,
-    layers: Vec<i32>,
-    lookup_table: Vec<i32>,
-    training_set: DataSet,
-    test_set: DataSet,
-    neural_network: NeuralNetwork,
-    calculations: i32,
-    epochs: i32,
-    learning_rate: f64,
-    accuracy: f64,
-    average_error: f64,
-    max_error: f64,
-    cost: f64,
-    scaled_cost: f64,
-    fitness: f64,
-    seed: i32,
-    is_training: bool,
+#[derive(Debug, Clone)]
+pub struct Contestant {
+    pub layer_count: i32,
+    pub layer_sizes: Vec<i32>,
+    pub layers: Vec<i32>,
+    pub lookup_table: Vec<i32>,
+    pub neural_network: NeuralNetwork,
+    pub calculations: i32,
+    pub epochs: i32,
+    pub learning_rate: f64,
+    pub accuracy: f64,
+    pub average_error: f64,
+    pub max_error: f64,
+    pub cost: f64,
+    pub scaled_cost: f64,
+    pub fitness: f64,
+    pub seed: i32,
+    pub is_training: bool,
 }
 
 impl Contestant {
-    pub fn new(training_set: DataSet, epochs: i32, seed: i32, layer_sizes: Vec<i32>, learning_rate: f64, test_set: DataSet, input_size: i32, output_size: i32) -> Contestant {
-        let all_representations: (Vec<i32>, Vec<i32>) = Contestant::from_layer_sizes(layer_sizes);
-        let layers = Contestant::add_io(all_representations.second, input_size, output_size);
+    pub fn new(epochs: i32, seed: i32, layer_sizes: Vec<i32>, learning_rate: f64) -> Contestant {
+        let all_representations: (Vec<i32>, Vec<i32>) = Contestant::from_layer_sizes(layer_sizes.clone());
+        let mut layers: Vec<i32>;
+        unsafe { layers = Contestant::add_io(all_representations.1.clone(), INPUT_SIZE, OUTPUT_SIZE); }
         Contestant {
             layer_count: layer_sizes.len() as i32,
             layer_sizes: layer_sizes.clone(),
-            layers,
+            layers: layers.clone(),
             lookup_table: all_representations.1,
-            training_set,
-            test_set,
-            neural_network: NeuralNetwork::new(layers.clone().iter().map(|x| x as usize).collect(), learning_rate, seed),
+            neural_network: NeuralNetwork::new(layers.clone().iter().map(|x| *x as usize).collect(), learning_rate, seed),
             calculations: Contestant::calculations_calculator(layers.clone()),
             epochs,
             learning_rate,
@@ -67,7 +66,7 @@ impl Contestant {
         calculations
     }
 
-    pub fn from_layer_sizes(layer_sizes: Vec<i32>) -> (Vec<i32>, Vec<i32>) {
+    pub fn from_layer_sizes(mut layer_sizes: Vec<i32>) -> (Vec<i32>, Vec<i32>) {
         let mut layers = Vec::new();
         let mut lookup_table = Vec::new();
         for i in 0..layer_sizes.len() {
@@ -76,24 +75,49 @@ impl Contestant {
                     layer_sizes[i] = 7;
                 }
                 layers.push(layer_sizes[i]);
-                lookup_table.push(layer_count);
+                lookup_table.push(i as i32);
             }
         }
-        (layers, lookup_table)
+        (lookup_table, layers)
     }
 
+
     pub fn fit(&mut self, iter: i32) {
-        self.neural_network.fit(&self.training_set.inputs, &self.training_set.targets, self.epochs);
-        // test the neural network
-        let  (accuracy, mut average_error, max_error) = (0.0, 0.0, 0.0);
-        for i in 0..self.test_set.inputs.len() {
-            let output = self.neural_network.predict(self.test_set.inputs[i].clone());
-            let target = &self.test_set.targets[i];
-            let bit_output = output.iter().map(|x| if *x > 0.5 { 1 } else { 0 }).collect::<Vec<i32>>();
-            if bit_output != target {
-                average_error += 1.0;
+        unsafe {
+            self.neural_network.fit(&TRAINING_SET.clone().unwrap().inputs.clone(), &TRAINING_SET.clone().unwrap().targets.clone(), self.epochs);
+            // test the neural network
+            // TODO: fix this part, cause idk how the java code worked and its ugly anyways
+            let (accuracy, mut average_error, max_error) = (0.0, 0.0, 0.0);
+            for i in 0..TEST_SET.clone().unwrap().inputs.len() {
+                let output = self.neural_network.predict(TEST_SET.clone().unwrap().inputs[i].clone());
+                let target = TEST_SET.clone().unwrap().targets[i].clone();
+                let bit_output: Vec<f64> = output.iter().map(|x| if *x > 0.5 { 1.0 } else { 0.0 }).collect();
+                if bit_output != target {
+                    average_error += 1.0;
+                }
             }
+            average_error /= TEST_SET.clone().unwrap().inputs.len() as f64;
+            self.accuracy = accuracy;
+            self.cost = average_error;
         }
-        average_error /= self.test_set.inputs.len() as f64;
+    }
+
+    pub fn print_properties(&self) {
+        println!("Contestant Properties:");
+        println!("\tlayer_count: {}", self.layer_count);
+        println!("\tlayer_sizes: {:?}", self.layer_sizes);
+        println!("\tlayers: {:?}", self.layers);
+        println!("\tlookup_table: {:?}", self.lookup_table);
+        println!("\tcalculations: {}", self.calculations);
+        println!("\tepochs: {}", self.epochs);
+        println!("\tlearning_rate: {}", self.learning_rate);
+        println!("\taccuracy: {}", self.accuracy);
+        println!("\taverage_error: {}", self.average_error);
+        println!("\tmax_error: {}", self.max_error);
+        println!("\tcost: {}", self.cost);
+        println!("\tscaled_cost: {}", self.scaled_cost);
+        println!("\tfitness: {}", self.fitness);
+        println!("\tseed: {}", self.seed);
+        println!("\tis_training: {}", self.is_training);
     }
 }

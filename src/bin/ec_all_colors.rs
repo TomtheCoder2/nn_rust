@@ -4,8 +4,8 @@ use nn_rust::nn::data_set::DataSet;
 fn main() {
     let seed = 123456;
     let generations = 100;
-    let population_size = 100;
-    let max_epochs = 10000;
+    let population_size = 10;
+    let max_epochs = 1000;
     let max_epochs_start = 500;
     let max_calculations = 10000;
     let max_calculations_start = 10000;

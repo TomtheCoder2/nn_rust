@@ -1,18 +1,15 @@
 use std::thread;
-use std::time::Duration;
 use rand::{Rng, thread_rng};
-use rand_distr::num_traits::pow;
-use rand_distr::num_traits::real::Real;
-use crate::ec::Contestant::Contestant;
+use crate::ec::contestant::Contestant;
 use crate::nn::data_set::DataSet;
 
 const COST_SCALER: f64 = 1.2;
-const ERROR_SCALER: f64 = 2.5;
-const ACCURACY_SCALER: f64 = 1.2;
-const CALCULATIONS_SCALER: f64 = 0.2;
-const EPOCHS_SCALER: f64 = 0.2;
-const PARAMETER_CHANGE_RATE_EXP: i32 = 5;
-const PARAMETER_CHANGE_RATE_LINEAR: i32 = 1;
+// const ERROR_SCALER: f64 = 2.5;
+// const ACCURACY_SCALER: f64 = 1.2;
+// const CALCULATIONS_SCALER: f64 = 0.2;
+// const EPOCHS_SCALER: f64 = 0.2;
+// const PARAMETER_CHANGE_RATE_EXP: i32 = 5;
+// const PARAMETER_CHANGE_RATE_LINEAR: i32 = 1;
 const EXP_PARAMETER_CHANGE_RATE_EXP: i32 = 5;
 const EXP_PARAMETER_CHANGE_RATE_LINEAR: i32 = 10;
 const ASEXUAL_REPRODUCTION: f64 = 0.75;
@@ -92,11 +89,13 @@ impl EvolutionaryComputation {
     }
 
     pub fn run(&mut self) {
-        let mut new_population: Vec<Contestant> = Vec::new();
-        for i in 0..self.population_size {
+        let mut new_population: Vec<Contestant>;
+        for _i in 0..self.population_size {
             self.population.push(self.generate_random_start());
         }
         for i in 0..self.generations as usize {
+            println!("Start Gen #{}", i);
+            let start = std::time::Instant::now();
             self.current_generation = i as i32;
             // TODO: thread magic
             let mut todo = vec![];
@@ -115,6 +114,9 @@ impl EvolutionaryComputation {
                 pop[res.1 as usize] = res.0;
             }
             self.population = pop;
+            // stop timer
+            let duration = start.elapsed();
+            println!("Time elapsed Gen {} is: {:?}", i, duration);
             println!("Generation: {}", i);
             println!("Best: {}", EvolutionaryComputation::get_best(&self.population).average_error);
             println!("Worst: {}", EvolutionaryComputation::get_worst(&self.population).average_error);
@@ -142,11 +144,12 @@ impl EvolutionaryComputation {
                 layer_sizes_[i as usize] = 0;
             }
         }
-        Contestant::new(thread_rng().gen_range(self.min_epochs..self.max_epochs),
+        Contestant::new(thread_rng().gen_range(self.min_epochs..self.max_epochs_start),
                         self.seed, layer_sizes_, thread_rng().gen_range(0.0..self.max_learning_rate))
     }
 
     pub fn next_gen(&self, population: &mut Vec<Contestant>) -> Vec<Contestant> {
+        // println!("Next Gen");
         let mut next_population: Vec<Contestant> = Vec::new();
         for i in 0..self.population_size as usize {
             population[i].scaled_cost = population[i].cost.powf(COST_SCALER);
@@ -157,10 +160,11 @@ impl EvolutionaryComputation {
             population[i].fitness = worst_contestant.scaled_cost / population[i].scaled_cost;
             fitness_sum += population[i].fitness;
         }
-        for i in 0..self.population_size as usize {
-            population[i].print_properties();
-        }
+        // for i in 0..self.population_size as usize {
+        //     population[i].print_properties();
+        // }
         for _i in 0..population.len() {
+            // println!("pop len: {}", population.len());
             let point = self.contestant_int(population, fitness_sum);
             let r_number: f64 = thread_rng().gen_range(0.0..1.0);
             if r_number < ASEXUAL_REPRODUCTION {
@@ -227,10 +231,12 @@ impl EvolutionaryComputation {
             }
         }
         unsafe {
-            let from_layer = Contestant::from_layer_sizes(layer_sizes.clone());
+            let mut from_layer = Contestant::from_layer_sizes(layer_sizes.clone());
             while Contestant::calculations_calculator(Contestant::add_io(from_layer.1.clone(), INPUT_SIZE, OUTPUT_SIZE)) > self.max_calculations {
                 let next_int = from_layer.0.len();
-                layer_sizes[from_layer.1[thread_rng().gen_range(1..next_int - 1)] as usize] = 0;
+                // println!("next_int: {}", next_int);
+                layer_sizes[from_layer.0[thread_rng().gen_range(0..next_int)] as usize] = 0;
+                from_layer = Contestant::from_layer_sizes(layer_sizes.clone());
             }
         }
 
@@ -253,6 +259,6 @@ impl EvolutionaryComputation {
         //                                 ) / fitness),
         //                         min),
         //                 max);
-        return min.max(max.min(current + (((thread_rng().gen_range(0.0..1.0) * 2.0) - 1.0).powf(EXP_PARAMETER_CHANGE_RATE_EXP as f64) * (current - min) * EXP_PARAMETER_CHANGE_RATE_LINEAR as f64 / fitness)));
+        return min.max(max.min(current + ((((thread_rng().gen_range(0.0..1.0) * 2.0) - 1.0) as f64).powf(EXP_PARAMETER_CHANGE_RATE_EXP as f64) * (current - min) * EXP_PARAMETER_CHANGE_RATE_LINEAR as f64 / fitness)));
     }
 }

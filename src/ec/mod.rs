@@ -1,2 +1,2 @@
-pub mod EvolutionaryComputation;
-pub mod Contestant;
+pub mod evolutionary_computation;
+pub mod contestant;

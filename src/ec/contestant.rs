@@ -1,5 +1,4 @@
-use crate::ec::EvolutionaryComputation::{INPUT_SIZE, OUTPUT_SIZE, TEST_SET, TRAINING_SET};
-use crate::nn::data_set::DataSet;
+use crate::ec::evolutionary_computation::{INPUT_SIZE, OUTPUT_SIZE, TEST_SET, TRAINING_SET};
 use crate::nn::neural_network::NeuralNetwork;
 
 #[derive(Debug, Clone)]
@@ -25,7 +24,7 @@ pub struct Contestant {
 impl Contestant {
     pub fn new(epochs: i32, seed: i32, layer_sizes: Vec<i32>, learning_rate: f64) -> Contestant {
         let all_representations: (Vec<i32>, Vec<i32>) = Contestant::from_layer_sizes(layer_sizes.clone());
-        let mut layers: Vec<i32>;
+        let layers: Vec<i32>;
         unsafe { layers = Contestant::add_io(all_representations.1.clone(), INPUT_SIZE, OUTPUT_SIZE); }
         Contestant {
             layer_count: layer_sizes.len() as i32,
@@ -82,12 +81,12 @@ impl Contestant {
     }
 
 
-    pub fn fit(&mut self, iter: i32) {
+    pub fn fit(&mut self, _iter: i32) {
         unsafe {
             self.neural_network.fit(&TRAINING_SET.clone().unwrap().inputs.clone(), &TRAINING_SET.clone().unwrap().targets.clone(), self.epochs);
             // test the neural network
             // TODO: fix this part, cause idk how the java code worked and its ugly anyways
-            let (accuracy, mut average_error, max_error) = (0.0, 0.0, 0.0);
+            let (accuracy, mut average_error, _max_error) = (0.0, 0.0, 0.0);
             for i in 0..TEST_SET.clone().unwrap().inputs.len() {
                 let output = self.neural_network.predict(TEST_SET.clone().unwrap().inputs[i].clone());
                 let target = TEST_SET.clone().unwrap().targets[i].clone();
@@ -100,6 +99,7 @@ impl Contestant {
             self.accuracy = accuracy;
             self.cost = average_error;
         }
+        // println!("finished: {}", iter);
     }
 
     pub fn print_properties(&self) {

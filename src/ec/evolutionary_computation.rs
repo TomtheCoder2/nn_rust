@@ -179,7 +179,7 @@ impl EvolutionaryComputation {
         next_population
     }
 
-    pub fn contestant_int(&self, population: &Vec<Contestant>, fitness_sum: f64) -> usize {
+    pub fn contestant_int(&self, population: &[Contestant], fitness_sum: f64) -> usize {
         let mut current_sum = population[0].fitness;
         let mut point = 0;
         let goal = thread_rng().gen_range(0.0..fitness_sum);
@@ -203,7 +203,7 @@ impl EvolutionaryComputation {
     }
 
     pub fn merge(a: f64, b: f64) -> f64 {
-        return if thread_rng().gen_range(0.0..1.0) < SEXUAL_KEEP_RATE {
+        if thread_rng().gen_range(0.0..1.0) < SEXUAL_KEEP_RATE {
             if rand::thread_rng().gen_range(0.0..1.0) < 0.5 {
                 a
             } else {
@@ -211,7 +211,7 @@ impl EvolutionaryComputation {
             }
         } else {
             (a + b) / 2.0
-        };
+        }
     }
 
     pub fn mutate(&self, contestant: &mut Contestant) -> Contestant {
@@ -224,10 +224,8 @@ impl EvolutionaryComputation {
                 } else {
                     layer_sizes[i] = 0;
                 }
-            } else {
-                if r_number < ASEXUAL_KEEP_RATE {
-                    layer_sizes[i] = thread_rng().gen_range(0..self.max_nodes_start) as i32;
-                }
+            } else if r_number < ASEXUAL_KEEP_RATE {
+                layer_sizes[i] = thread_rng().gen_range(0..self.max_nodes_start) as i32;
             }
         }
         unsafe {
@@ -259,6 +257,17 @@ impl EvolutionaryComputation {
         //                                 ) / fitness),
         //                         min),
         //                 max);
-        return min.max(max.min(current + ((((thread_rng().gen_range(0.0..1.0) * 2.0) - 1.0) as f64).powf(EXP_PARAMETER_CHANGE_RATE_EXP as f64) * (current - min) * EXP_PARAMETER_CHANGE_RATE_LINEAR as f64 / fitness)));
+        min.max(
+            max.min(
+                current + (
+                    (
+                        ((thread_rng().gen_range(0.0..1.0) * 2.0) - 1.0) as f64)
+                        .powf(EXP_PARAMETER_CHANGE_RATE_EXP as f64)
+                        * (current - min)
+                        * EXP_PARAMETER_CHANGE_RATE_LINEAR as f64
+                        / fitness
+                )
+            )
+        )
     }
 }

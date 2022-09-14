@@ -33,7 +33,7 @@ impl Contestant {
             layer_sizes: layer_sizes.clone(),
             layers: layers.clone(),
             lookup_table: all_representations.1,
-            neural_network: NeuralNetwork::new(layers.clone().iter().map(|x| *x as usize).collect(), learning_rate, seed),
+            neural_network: NeuralNetwork::new(layers.iter().map(|x| *x as usize).collect(), learning_rate, seed),
             calculations: Contestant::calculations_calculator(layers.clone()),
             epochs,
             learning_rate,
@@ -86,12 +86,18 @@ impl Contestant {
 
     pub fn fit(&mut self, _iter: i32) {
         unsafe {
-            self.neural_network.fit(&TRAINING_SET.clone().unwrap().inputs.clone(), &TRAINING_SET.clone().unwrap().targets.clone(), self.epochs);
+            self.neural_network.fit(&TRAINING_SET.clone().unwrap().inputs, &TRAINING_SET.clone().unwrap().targets, self.epochs);
             // test the neural network
             // TODO: fix this part, cause idk how the java code worked and its ugly anyways
             let mut errors_per_color: Vec<Vec<f64>> = vec![vec![0.0; TEST_SET.clone().unwrap().targets[0].len()]; TEST_SET.clone().unwrap().inputs.len()];
+            //println!("layer_sizes: {:?}", self.neural_network.layer_sizes);
+            //println!("learning_rate: {:?}", self.neural_network.learning_rate);
+
+            let mut predictions: Vec<usize> = vec![0; TEST_SET.clone().unwrap().inputs.len()];
+            let mut outputs: Vec<Vec<f64>> = vec![vec![0.0; TEST_SET.clone().unwrap().targets[0].len()]; TEST_SET.clone().unwrap().inputs.len()];
             for i in 0..TEST_SET.clone().unwrap().inputs.len() {
                 let output = self.neural_network.predict(TEST_SET.clone().unwrap().inputs[i].clone());
+                outputs[i] = output.clone();
                 //println!("output: {:?}", output);
                 let target = TEST_SET.clone().unwrap().targets[i].clone();
                 let mut correct_color= 0;
@@ -107,19 +113,31 @@ impl Contestant {
                 if correct_color != predicted_color {
                     errors_per_color[i][correct_color] += 1.0;
                 }
+                predictions[i] = predicted_color;
             }
+            println!("predictions: {:?}", predictions);
+            println!("outputs: {:?}", outputs);
+            /*
+            println!("errors_per_color:");
+            println!("{:?}", errors_per_color);
+
+            for i in errors_per_color.clone() {
+                println!("{:?}", i);
+            }*/
             let mut errors_per_color_sum: Vec<f64> = vec![0.0; TEST_SET.clone().unwrap().targets[0].len()];
             for i in 0..errors_per_color.len() {
                 for j in 0..errors_per_color[i].len() {
                     errors_per_color_sum[j] += errors_per_color[i][j];
                 }
             }
+            //println!("errors_per_color_sum: {:?}", errors_per_color_sum);
             let (max_error_index, max_error) = errors_per_color_sum.iter().enumerate().max_by(|a, b| a.1.partial_cmp(b.1).unwrap()).unwrap();
             let average_error = errors_per_color_sum.iter().sum::<f64>() / errors_per_color_sum.len() as f64;
             let accuracy = 0.0; //tmp, TODO: add accuracy functionality here
+            //println!("max_error: {}, max_error_index: {}, average_error: {}, accuracy: {}", max_error, max_error_index, average_error, accuracy);
             self.accuracy = accuracy;
-            self.average_error = average_error;
-            self.max_error = *max_error;
+            self.average_error = average_error / TEST_SET.clone().unwrap().inputs.len() as f64 * 100.0;
+            self.max_error = *max_error / TEST_SET.clone().unwrap().inputs.len() as f64 * 100.0;
             self.max_error_index = max_error_index;
             self.cost = average_error + max_error;
         }

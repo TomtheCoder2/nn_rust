@@ -1,3 +1,4 @@
+use std::fmt;
 use crate::ec::evolutionary_computation::{INPUT_SIZE, OUTPUT_SIZE, TEST_SET, TRAINING_SET};
 use crate::nn::neural_network::NeuralNetwork;
 
@@ -14,6 +15,7 @@ pub struct Contestant {
     pub accuracy: f64,
     pub average_error: f64,
     pub max_error: f64,
+    pub max_error_index: usize,
     pub cost: f64,
     pub scaled_cost: f64,
     pub fitness: f64,
@@ -38,6 +40,7 @@ impl Contestant {
             accuracy: 0.0,
             average_error: 0.0,
             max_error: 0.0,
+            max_error_index: 0,
             cost: 0.0,
             scaled_cost: 0.0,
             fitness: 0.0,
@@ -86,18 +89,39 @@ impl Contestant {
             self.neural_network.fit(&TRAINING_SET.clone().unwrap().inputs.clone(), &TRAINING_SET.clone().unwrap().targets.clone(), self.epochs);
             // test the neural network
             // TODO: fix this part, cause idk how the java code worked and its ugly anyways
-            let (accuracy, mut average_error, _max_error) = (0.0, 0.0, 0.0);
+            let mut errors_per_color: Vec<Vec<f64>> = vec![vec![0.0; TEST_SET.clone().unwrap().targets[0].len()]; TEST_SET.clone().unwrap().inputs.len()];
             for i in 0..TEST_SET.clone().unwrap().inputs.len() {
                 let output = self.neural_network.predict(TEST_SET.clone().unwrap().inputs[i].clone());
+                //println!("output: {:?}", output);
                 let target = TEST_SET.clone().unwrap().targets[i].clone();
-                let bit_output: Vec<f64> = output.iter().map(|x| if *x > 0.5 { 1.0 } else { 0.0 }).collect();
-                if bit_output != target {
-                    average_error += 1.0;
+                let mut correct_color= 0;
+                let mut predicted_color= 0;
+                for j in 0 .. output.len() {
+                    if target[j] == 1.0 {
+                        correct_color = j;
+                    }
+                    if output[j] > output[predicted_color] {
+                        predicted_color = j;
+                    }
+                }
+                if correct_color != predicted_color {
+                    errors_per_color[i][correct_color] += 1.0;
                 }
             }
-            average_error /= TEST_SET.clone().unwrap().inputs.len() as f64;
+            let mut errors_per_color_sum: Vec<f64> = vec![0.0; TEST_SET.clone().unwrap().targets[0].len()];
+            for i in 0..errors_per_color.len() {
+                for j in 0..errors_per_color[i].len() {
+                    errors_per_color_sum[j] += errors_per_color[i][j];
+                }
+            }
+            let (max_error_index, max_error) = errors_per_color_sum.iter().enumerate().max_by(|a, b| a.1.partial_cmp(b.1).unwrap()).unwrap();
+            let average_error = errors_per_color_sum.iter().sum::<f64>() / errors_per_color_sum.len() as f64;
+            let accuracy = 0.0; //tmp, TODO: add accuracy functionality here
             self.accuracy = accuracy;
-            self.cost = average_error;
+            self.average_error = average_error;
+            self.max_error = *max_error;
+            self.max_error_index = max_error_index;
+            self.cost = average_error + max_error;
         }
         // println!("finished: {}", iter);
     }
@@ -119,5 +143,11 @@ impl Contestant {
         println!("\tfitness: {}", self.fitness);
         println!("\tseed: {}", self.seed);
         println!("\tis_training: {}", self.is_training);
+    }
+}
+
+impl fmt::Display for Contestant {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Contestant {{layer_count: {}\n layer_sizes: {:?}\n layers: {:?}\n lookup_table: {:?}\n calculations: {}\n epochs: {}\n learning_rate: {}\n accuracy: {}\n average_error: {}\n max_error: {}\n cost: {}\n scaled_cost: {}\n fitness: {}\n seed: {}\n is_training: {} }}", self.layer_count, self.layer_sizes, self.layers, self.lookup_table, self.calculations, self.epochs, self.learning_rate, self.accuracy, self.average_error, self.max_error, self.cost, self.scaled_cost, self.fitness, self.seed, self.is_training)
     }
 }

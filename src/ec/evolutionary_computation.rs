@@ -101,11 +101,11 @@ impl EvolutionaryComputation {
             let mut todo = vec![];
             let mut pop = self.population.clone();
             for j in 0..self.population_size as usize {
-                let iter = j.clone();
+                let iter = j; //mb needs a .clone()
                 let mut pop_j = pop[j].clone();
                 todo.push(thread::spawn(move || {
                     pop_j.fit(iter as i32);
-                    println!("thread finished {}: {}, {}, {:?}", iter, pop_j.fitness, pop_j.epochs, pop_j.layers);
+                    println!("thread finished {}: error: {}|{}, epochs: {}, layers: {:?}", iter, pop_j.average_error as i32, pop_j.max_error as i32, pop_j.epochs, pop_j.layers);
                     (pop_j, iter)
                 }));
             }
@@ -120,6 +120,7 @@ impl EvolutionaryComputation {
             println!("Generation: {}", i);
             println!("Best: {}", EvolutionaryComputation::get_best(&self.population).average_error);
             println!("Worst: {}", EvolutionaryComputation::get_worst(&self.population).average_error);
+            println!("Best Contestant: \n {}", EvolutionaryComputation::get_best(&self.population));
             new_population = self.next_gen(&mut self.population.clone());
             self.population = new_population;
         }

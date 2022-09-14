@@ -82,15 +82,15 @@ impl NeuralNetwork {
             for i in samples {
                 // println!("input: {:?}", inputs[i].clone());
                 // println!("target: {:?}", targets[i].clone());
-                let result = self.train(inputs[i].clone(), targets[i].clone());
+                let _result = self.train(inputs[i].clone(), targets[i].clone());
                 // check result
-                let bit_result: Vec<i32> = result.iter().map(|x| if *x > 0.5 { 1 } else { 0 }).collect();
-                for j in 0..bit_result.len() {
-                    if bit_result[j] != targets[i][j] as i32 {
-                        _errors_this_epoch += 1;
-                        break;
-                    }
-                }
+                // let bit_result: Vec<i32> = result.iter().map(|x| if *x > 0.5 { 1 } else { 0 }).collect();
+                // for j in 0..bit_result.len() {
+                //     if bit_result[j] != targets[i][j] as i32 {
+                //         _errors_this_epoch += 1;
+                //         break;
+                //     }
+                // }
             }
             // if e % 10000 == 0 {
             //     println!("Epoch: {}, Errors: {}", e, errors_this_epoch);

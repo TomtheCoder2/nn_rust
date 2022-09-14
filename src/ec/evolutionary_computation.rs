@@ -180,7 +180,7 @@ impl EvolutionaryComputation {
         next_population
     }
 
-    pub fn contestant_int(&self, population: &[Contestant], fitness_sum: f64) -> usize {
+    pub fn contestant_int(&self, population: &Vec<Contestant>, fitness_sum: f64) -> usize {
         let mut current_sum = population[0].fitness;
         let mut point = 0;
         let goal = thread_rng().gen_range(0.0..fitness_sum);
@@ -205,7 +205,7 @@ impl EvolutionaryComputation {
 
     pub fn merge(a: f64, b: f64) -> f64 {
         if thread_rng().gen_range(0.0..1.0) < SEXUAL_KEEP_RATE {
-            if rand::thread_rng().gen_range(0.0..1.0) < 0.5 {
+            if thread_rng().gen_range(0.0..1.0) < 0.5 {
                 a
             } else {
                 b

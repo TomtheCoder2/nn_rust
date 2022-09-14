@@ -1,6 +1,6 @@
 extern crate nalgebra as na;
 
-use std::ops::{Add, Sub};
+use std::ops::{Sub};
 use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
 
@@ -148,11 +148,12 @@ impl Matrix {
         // if self.cols != m.rows {
         //     panic!("Matrix multiply: matrices have different dimensions (a: {}, b: {})", self.cols, self.rows);
         // }
-        for row in 0..self.rows {
-            for col in 0..m.cols {
-                self.matrix[(row, col)] *= m.matrix[(row, col)];
-            }
-        }
+        // for row in 0..self.rows {
+        //     for col in 0..m.cols {
+        //         self.matrix[(row, col)] *= m.matrix[(row, col)];
+        //     }
+        // }
+        self.matrix = self.matrix.component_mul(&m.matrix);
     }
     pub fn multiply_with_double(&mut self, d: f64) {
         Matrix::new_from_matrix(self.matrix.clone().scale(d));

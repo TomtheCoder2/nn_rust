@@ -17,9 +17,9 @@ impl DataSet {
     }
 
     pub fn get_from_file(file_name: &str) -> DataSet {
-        let mut file = File::open(file_name).expect("File not found");
-        let mut contents = String::new();
-        file.read_to_string(&mut contents).expect("Something went wrong reading the file");
+        // let mut file = File::open(file_name).expect("File not found");
+        let mut contents = include_str!("data.txt");
+        // file.read_to_string(&mut contents).expect("Something went wrong reading the file");
         // format: {input1.1, input1.2, input1.3, input1.4}, {target1.1, target1.2...}
         let inputs: Vec<Vec<f64>> = contents
             .split("},{")

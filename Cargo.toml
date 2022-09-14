@@ -13,7 +13,6 @@ matrixmultiply = "0.3.2"
 rblas = "0.0.13"
 graplot = "0.1.21"
 textplots = "0.8.0"
-pgfplots = { version = "0.4.0", features = ["inclusive"] }
 
 [profile.release]
 debug = false

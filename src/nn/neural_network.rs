@@ -3,10 +3,10 @@ use crate::nn::matrix::Matrix;
 
 #[derive(Debug, Clone)]
 pub struct NeuralNetwork {
-    layer_sizes: Vec<usize>,
-    weights: Vec<Matrix>,
-    biases: Vec<Matrix>,
-    learning_rate: f64,
+    pub layer_sizes: Vec<usize>,
+    pub weights: Vec<Matrix>,
+    pub biases: Vec<Matrix>,
+    pub learning_rate: f64,
 }
 
 impl NeuralNetwork {

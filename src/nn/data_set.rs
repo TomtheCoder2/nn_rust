@@ -1,5 +1,3 @@
-use std::fs::File;
-use std::io::Read;
 
 #[derive(Debug, Clone)]
 pub struct DataSet {
@@ -17,9 +15,7 @@ impl DataSet {
     }
 
     pub fn get_from_file(file_name: &str) -> DataSet {
-        // let mut file = File::open(file_name).expect("File not found");
-        let mut contents = include_str!("data.txt");
-        // file.read_to_string(&mut contents).expect("Something went wrong reading the file");
+        let contents = include_str!("data.txt");
         // format: {input1.1, input1.2, input1.3, input1.4}, {target1.1, target1.2...}
         let inputs: Vec<Vec<f64>> = contents
             .split("},{")

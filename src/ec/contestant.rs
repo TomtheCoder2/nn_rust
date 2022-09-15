@@ -86,6 +86,7 @@ impl Contestant {
 
     pub fn fit(&mut self, _iter: i32) {
         unsafe {
+            dbg!(self.learning_rate);
             self.neural_network.fit(&TRAINING_SET.clone().unwrap().inputs, &TRAINING_SET.clone().unwrap().targets, self.epochs);
             // test the neural network
             // TODO: fix this part, cause idk how the java code worked and its ugly anyways
@@ -115,8 +116,9 @@ impl Contestant {
                 }
                 predictions[i] = predicted_color;
             }
-            println!("predictions: {:?}", predictions);
-            println!("outputs: {:?}", outputs);
+            // println!("predictions: {:?}", predictions);
+            // dbg!(predictions);
+            // println!("outputs: {:?}", outputs);
             /*
             println!("errors_per_color:");
             println!("{:?}", errors_per_color);
